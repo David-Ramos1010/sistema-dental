@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SistemaDentalApplication<sistema-dental>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.davidramos1010.sistema_dental.SistemaDentalApplication",
+            "projectName": "sistema-dental",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
