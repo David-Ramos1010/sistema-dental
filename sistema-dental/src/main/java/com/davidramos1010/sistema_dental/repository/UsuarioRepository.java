@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    @EntityGraph(attributePaths = "rol") // carga el rol en la misma consulta
+    @EntityGraph(attributePaths = "rol") 
     Optional<Usuario> findByEmail(String email);
 
     boolean existsByEmail(String email);

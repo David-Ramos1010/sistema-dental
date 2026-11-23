@@ -1,0 +1,6 @@
+CREATE TABLE tokens_revocados (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    jti VARCHAR(64) NOT NULL UNIQUE,
+    expira_en DATETIME(6) NOT NULL,
+    revocado_en DATETIME(6) NOT NULL
+) ENGINE=InnoDB;
