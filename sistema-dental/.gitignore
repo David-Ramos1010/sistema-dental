@@ -31,3 +31,32 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### No subir nunca ###
+application.properties
+application.yml
+application-*.properties
+application-*.yml
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+
+### Frontend ###
+node_modules/
+dist/
+.vite/
+*.local
+npm-debug.log*
+
+### Logs y temporales ###
+*.log
+logs/
+*.tmp
+*.swp
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
