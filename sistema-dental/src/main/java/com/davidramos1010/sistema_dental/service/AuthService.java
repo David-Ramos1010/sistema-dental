@@ -18,6 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.davidramos1010.sistema_dental.entity.Paciente;
+import com.davidramos1010.sistema_dental.repository.PacienteRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class AuthService {
     private final TokenRevocadoRepository tokenRevocadoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final PacienteRepository pacienteRepository;
 
     public LoginResponse login(LoginRequest req) {
         authenticationManager.authenticate(
@@ -53,9 +56,11 @@ public class AuthService {
         u.setEmail(email);
         u.setPassword(passwordEncoder.encode(req.password()));
         u.setTelefono(req.telefono());
-        // Quien se registra SIEMPRE es PACIENTE: el rol nunca viene del cliente
         u.setRol(rolRepository.findByNombre("PACIENTE").orElseThrow());
         usuarioRepository.save(u);
+        Paciente paciente = new Paciente();
+        paciente.setUsuario(u);
+        pacienteRepository.save(paciente);
 
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getTelefono(), "PACIENTE");
     }
