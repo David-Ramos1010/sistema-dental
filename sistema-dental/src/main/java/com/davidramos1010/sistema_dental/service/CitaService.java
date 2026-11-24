@@ -12,12 +12,15 @@ import com.davidramos1010.sistema_dental.entity.Tratamiento;
 import com.davidramos1010.sistema_dental.entity.Usuario;
 import com.davidramos1010.sistema_dental.exception.RecursoNoEncontradoException;
 import com.davidramos1010.sistema_dental.exception.ReglaNegocioException;
+import com.davidramos1010.sistema_dental.notificacion.CitaNotificacionEvent;
+import com.davidramos1010.sistema_dental.notificacion.TipoNotificacion;
 import com.davidramos1010.sistema_dental.repository.CitaRepository;
 import com.davidramos1010.sistema_dental.repository.DentistaRepository;
 import com.davidramos1010.sistema_dental.repository.PacienteRepository;
 import com.davidramos1010.sistema_dental.repository.TratamientoRepository;
 import com.davidramos1010.sistema_dental.security.UsuarioActual;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,7 @@ public class CitaService {
     private final DentistaRepository dentistaRepository;
     private final TratamientoRepository tratamientoRepository;
     private final UsuarioActual usuarioActual;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public PageResponse<CitaResponse> listar(EstadoCita estado, LocalDate desde, LocalDate hasta,
@@ -110,7 +114,7 @@ public class CitaService {
         c.getTratamientos().addAll(resolverTratamientos(req.tratamientoIds()));
         citaRepository.save(c);
 
-        // Fase 5: aquí se enviarán el SMS, el WhatsApp y el correo de confirmación
+        notificar(c, TipoNotificacion.CREADA);
         return aResponse(c);
     }
 
@@ -135,11 +139,16 @@ public class CitaService {
             throw new ReglaNegocioException("El dentista ya tiene una cita a esa hora");
         }
 
+        boolean cambioFecha = !c.getFechaHora().equals(req.fechaHora());
         c.setFechaHora(req.fechaHora());
         c.setMotivo(req.motivo().trim());
         c.setNotas(req.notas());
         c.getTratamientos().clear();
         c.getTratamientos().addAll(resolverTratamientos(req.tratamientoIds()));
+
+        if (cambioFecha) {
+            notificar(c, TipoNotificacion.REPROGRAMADA);
+        }
         return aResponse(c);
     }
 
@@ -157,7 +166,11 @@ public class CitaService {
         }
         c.setEstado(nuevo);
 
-        // Fase 5: notificar al paciente cuando la cita pase a CONFIRMADA o CANCELADA
+        if (nuevo == EstadoCita.CONFIRMADA) {
+            notificar(c, TipoNotificacion.CONFIRMADA);
+        } else if (nuevo == EstadoCita.CANCELADA) {
+            notificar(c, TipoNotificacion.CANCELADA);
+        }
         return aResponse(c);
     }
 
@@ -169,6 +182,18 @@ public class CitaService {
     }
 
     // ---------- auxiliares ----------
+
+    private void notificar(Cita c, TipoNotificacion tipo) {
+        Usuario paciente = c.getPaciente().getUsuario();
+        eventPublisher.publishEvent(new CitaNotificacionEvent(
+                tipo,
+                paciente.getNombre(),
+                paciente.getEmail(),
+                paciente.getTelefono(),
+                c.getDentista().getUsuario().getNombre(),
+                c.getFechaHora(),
+                c.getMotivo()));
+    }
 
     private Cita obtenerPermitida(Long id, Usuario u) {
         Cita c = citaRepository.findById(id)
