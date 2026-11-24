@@ -18,20 +18,26 @@ public class EmailService {
     @Value("${app.mail.from}")
     private String from;
 
-    public void enviarRecuperacion(String para, String nombre, String enlace) {
+    public void enviar(String para, String asunto, String texto) {
         SimpleMailMessage mensaje = new SimpleMailMessage();
         mensaje.setFrom(from);
         mensaje.setTo(para);
-        mensaje.setSubject("Recuperación de contraseña - Sistema Dental");
-        mensaje.setText("Hola " + nombre + ",\n\n"
-                + "Recibimos una solicitud para restablecer tu contraseña. "
-                + "Entra al siguiente enlace (vigente 30 minutos):\n\n"
-                + enlace + "\n\n"
-                + "Si no fuiste tú, ignora este mensaje.");
+        mensaje.setSubject(asunto);
+        mensaje.setText(texto);
         try {
             mailSender.send(mensaje);
+            log.info("Correo enviado a {} ({})", para, asunto);
         } catch (MailException e) {
             log.error("No se pudo enviar el correo a {}: {}", para, e.getMessage());
         }
+    }
+
+    public void enviarRecuperacion(String para, String nombre, String enlace) {
+        enviar(para, "Recuperación de contraseña - Sistema Dental",
+                "Hola " + nombre + ",\n\n"
+                        + "Recibimos una solicitud para restablecer tu contraseña. "
+                        + "Entra al siguiente enlace (vigente 30 minutos):\n\n"
+                        + enlace + "\n\n"
+                        + "Si no fuiste tú, ignora este mensaje.");
     }
 }
