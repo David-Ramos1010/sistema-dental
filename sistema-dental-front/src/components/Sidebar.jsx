@@ -1,6 +1,7 @@
 import React from 'react';
 import './Sidebar.css';
 import imgLogo from '../assets/images/img_logo.png';
+import logoImg from "../assets/images/img_logo.png";
 
 export default function Sidebar({ vistaActual, cambiarVista, cerrarSesion }) {
     const menuItems = [
