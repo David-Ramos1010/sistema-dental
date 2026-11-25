@@ -45,6 +45,7 @@ export default function Navbar() {
                     <span className="user-name">{usuario?.nombre}</span>
                     <span className="user-role">
                         {ETIQUETA_ROL[usuario?.rol] || usuario?.rol}
+                        {usuario?.email ? ` • ${usuario.email}` : ""}
                     </span>
                 </div>
 
