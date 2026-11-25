@@ -1,51 +1,86 @@
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import "./App.css";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import ProductsPage from "./pages/ProductsPage"; // Se importa la página de productos
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 
-function App() {
-    const [usuario, setUsuario] = useState(null);
-    const [vistaActual, setVistaActual] = useState("citas"); // Vista inicial 
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
-    function iniciarSesion(datosUsuario) {
-        setUsuario(datosUsuario);
-        setVistaActual("citas");
-    }
+import CitasPage from "./pages/CitasPage";
+import TratamientosPage from "./pages/TratamientosPage";
+import DentistasPage from "./pages/DentistasPage";
+import PacientesPage from "./pages/PacientesPage";
+import MiPerfilPage from "./pages/MiPerfilPage";
+import UsuariosAdminPage from "./pages/UsuariosAdminPage";
 
-    function cerrarSesion() {
-        setUsuario(null);
-        setVistaActual("citas");
-    }
+function PublicRoute({ children }) {
+    const { usuario } = useAuth();
+    if (usuario) return <Navigate to="/citas" replace />;
+    return children;
+}
 
-    // Si no ha iniciado sesión, muestra el Login
-    if (!usuario) {
-        return <LoginPage onLogin={iniciarSesion} />;
-    }
-
+function AppLayout() {
     return (
         <div className="app-layout">
-            <Sidebar 
-                vistaActual={vistaActual} 
-                cambiarVista={setVistaActual} 
-                cerrarSesion={cerrarSesion} 
-            />
-
+            <Sidebar />
             <div className="main-area">
-                <Navbar
-                    usuario={usuario}
-                    titulo={vistaActual === "productos" ? "Gestión de Insumos y Productos" : "Gestión de Citas Odontológicas"}
-                />
-
+                <Navbar />
                 <main className="contenido">
-                    {vistaActual === "citas" && <DashboardPage cambiarVista={setVistaActual} />}
-                    {vistaActual === "productos" && <ProductsPage />}
+                    <Outlet />
                 </main>
             </div>
         </div>
     );
 }
 
-export default App;
+export default function App() {
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+                    <Route path="/registro" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+                    <Route path="/olvide-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+                    <Route path="/restablecer-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+
+                    <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                        <Route path="/citas" element={<CitasPage />} />
+                        <Route path="/tratamientos" element={<TratamientosPage />} />
+                        <Route path="/dentistas" element={<DentistasPage />} />
+
+                        <Route
+                            path="/pacientes"
+                            element={
+                                <ProtectedRoute allowedRoles={["ADMIN", "DENTISTA"]}>
+                                    <PacientesPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/mi-perfil"
+                            element={
+                                <ProtectedRoute allowedRoles={["PACIENTE"]}>
+                                    <MiPerfilPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/usuarios"
+                            element={
+                                <ProtectedRoute allowedRoles={["ADMIN"]}>
+                                    <UsuariosAdminPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                    </Route>
+
+                    <Route path="*" element={<Navigate to="/citas" replace />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    );
+}

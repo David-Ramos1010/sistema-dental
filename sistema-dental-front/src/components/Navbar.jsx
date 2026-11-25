@@ -1,10 +1,40 @@
-import React from 'react';
-import './Navbar.css';
+import { useLocation } from "react-router-dom";
+import "./Navbar.css";
+import { useAuth } from "../context/AuthContext";
 
-export default function Navbar({ usuario, titulo }) {
-    const nombreMostrar = usuario?.firstName && usuario?.lastName 
-        ? `${usuario.firstName} ${usuario.lastName}` 
-        : (usuario?.nombre || usuario?.username || "Nombre_Apellido");
+const TITULOS_RUTA = {
+    "/citas": "Gestión de Citas Odontológicas",
+    "/pacientes": "Gestión de Pacientes",
+    "/dentistas": "Directorio de Odontólogos",
+    "/tratamientos": "Catálogo de Tratamientos",
+    "/mi-perfil": "Mi Perfil de Paciente",
+    "/usuarios": "Administración de Usuarios",
+};
+
+const ETIQUETA_ROL = {
+    ADMIN: "Administrador/a",
+    DENTISTA: "Odontólogo/a",
+    PACIENTE: "Paciente",
+};
+
+const obtenerTitulo = (pathname) => {
+    const rutaEncontrada = Object.keys(TITULOS_RUTA).find((ruta) =>
+        pathname.startsWith(ruta)
+    );
+    return TITULOS_RUTA[rutaEncontrada] || "Clínica Dental";
+};
+
+const obtenerIniciales = (nombre) => {
+    if (!nombre) return "U";
+    const palabras = nombre.trim().split(" ");
+    if (palabras.length === 1) return palabras[0].charAt(0).toUpperCase();
+    return (palabras[0].charAt(0) + palabras[1].charAt(0)).toUpperCase();
+};
+
+export default function Navbar() {
+    const { usuario } = useAuth();
+    const location = useLocation();
+    const titulo = obtenerTitulo(location.pathname);
 
     return (
         <header className="navbar-container">
@@ -12,15 +42,23 @@ export default function Navbar({ usuario, titulo }) {
 
             <div className="navbar-user">
                 <div className="user-text">
-                    <span className="user-name">Doctora {nombreMostrar}</span>
-                    <span className="user-role">Administradora</span>
+                    <span className="user-name">{usuario?.nombre}</span>
+                    <span className="user-role">
+                        {ETIQUETA_ROL[usuario?.rol] || usuario?.rol}
+                    </span>
                 </div>
-                <img 
-                    src={usuario?.image || "https://dummyjson.com/icon/emilys/128"} 
-                    alt="Foto de Perfil" 
-                    className="user-avatar"
-                    onError={(e) => { e.target.src = "https://via.placeholder.com/40"; }}
-                />
+
+                {usuario?.avatar ? (
+                    <img
+                        src={usuario.avatar}
+                        alt={usuario.nombre || "Foto de Perfil"}
+                        className="user-avatar"
+                    />
+                ) : (
+                    <div className="user-avatar-placeholder">
+                        {obtenerIniciales(usuario?.nombre)}
+                    </div>
+                )}
             </div>
         </header>
     );

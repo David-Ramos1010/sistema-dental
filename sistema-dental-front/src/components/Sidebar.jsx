@@ -1,16 +1,27 @@
-import React from 'react';
-import './Sidebar.css';
-import imgLogo from '../assets/images/img_logo.png';
-import logoImg from "../assets/images/img_logo.png";
+import { NavLink, useNavigate } from "react-router-dom";
+import "./Sidebar.css";
+import imgLogo from "../assets/images/img_logo.png";
+import { useAuth } from "../context/AuthContext";
 
-export default function Sidebar({ vistaActual, cambiarVista, cerrarSesion }) {
-    const menuItems = [
-        { id: 'citas', label: 'Citas' },
-        { id: 'productos', label: 'Productos (CRUD)' },
-        { id: 'pacientes', label: 'Pacientes' },
-        { id: 'odontologos', label: 'Odontologos' },
-        { id: 'tratamientos', label: 'Tratamientos' }
-    ];
+const MENU_ITEMS = [
+    { to: "/citas", label: "Citas", roles: ["ADMIN", "DENTISTA", "PACIENTE"] },
+    { to: "/pacientes", label: "Pacientes", roles: ["ADMIN", "DENTISTA"] },
+    { to: "/dentistas", label: "Odontólogos", roles: ["ADMIN", "DENTISTA", "PACIENTE"] },
+    { to: "/tratamientos", label: "Tratamientos", roles: ["ADMIN", "DENTISTA", "PACIENTE"] },
+    { to: "/mi-perfil", label: "Mi Perfil", roles: ["PACIENTE"] },
+    { to: "/usuarios", label: "Usuarios", roles: ["ADMIN"] },
+];
+
+export default function Sidebar() {
+    const { usuario, cerrarSesion } = useAuth();
+    const navigate = useNavigate();
+
+    const enlacesVisibles = MENU_ITEMS.filter((item) => item.roles.includes(usuario?.rol));
+
+    const handleLogout = async () => {
+        await cerrarSesion();
+        navigate("/login");
+    };
 
     return (
         <aside className="sidebar-container">
@@ -20,19 +31,20 @@ export default function Sidebar({ vistaActual, cambiarVista, cerrarSesion }) {
             </div>
 
             <nav className="sidebar-menu">
-                {menuItems.map((item) => (
-                    <button
-                        key={item.id}
-                        className={`sidebar-btn ${vistaActual === item.id ? 'active' : ''}`}
-                        onClick={() => cambiarVista(item.id)}
+                {enlacesVisibles.map((item) => (
+                    <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) => `sidebar-btn ${isActive ? "active" : ""}`}
+                        style={{ textDecoration: "none" }}
                     >
                         {item.label}
-                    </button>
+                    </NavLink>
                 ))}
             </nav>
 
             <div className="sidebar-bottom">
-                <button className="sidebar-logout" onClick={cerrarSesion}>
+                <button type="button" className="sidebar-logout" onClick={handleLogout}>
                     Cerrar Sesión
                 </button>
             </div>

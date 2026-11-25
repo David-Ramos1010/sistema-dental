@@ -1,93 +1,104 @@
 //Centraliza todas las peticiones hacia http://localhost:8089/api
 //adjunta el token JWT en cada llamada protegida
 //traduce los errores del backend (ErrorResponse) para mostrarlos en pantalla
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8089/api";
-
-function construirQuery(params = {}) {
-    const query = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "" && value !== "TODOS") {
-            query.append(key, value);
-        }
-    });
-    const str = query.toString();
-    return str ? `?${str}` : "";
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8089/api';
 
 async function request(endpoint, options = {}) {
-    const token = localStorage.getItem("token");
-    const headers = {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(options.headers || {}),
-    };
+  const token = localStorage.getItem('token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
 
-    let response;
-    try {
-        response = await fetch(`${BASE_URL}${endpoint}`, {
-            ...options,
-            headers,
-        });
-    } catch {
-        throw new Error("No se pudo conectar con el servidor. Verifica que el backend esté encendido en el puerto 8089.");
-    }
+  let response;
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new Error('No se pudo conectar con el servidor. Verifica que el backend esté encendido en el puerto 8089.');
+  }
 
-    if (response.status === 204) return null;
+  const text = await response.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { mensaje: text };
+  }
 
-    const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const fieldErrors = data?.errores || null;
+    const validationMsg = fieldErrors ? Object.values(fieldErrors)[0] : null;
+    const errorMsg =
+      validationMsg ||
+      data?.mensaje ||
+      data?.message ||
+      data?.error ||
+      `Error HTTP ${response.status}`;
 
-    if (!response.ok) {
-        if (response.status === 401 && !endpoint.startsWith("/auth/login")) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("usuario");
-        }
-        const error = new Error(data.message || `Error HTTP ${response.status}`);
-        error.status = response.status;
-        error.fieldErrors = data.errors || null;
-        throw error;
-    }
+    const error = new Error(errorMsg);
+    if (fieldErrors) error.fieldErrors = fieldErrors;
+    throw error;
+  }
 
-    return data;
+  return data;
 }
 
+export const authService = {
+  login: (credenciales, password) => {
+    const payload =
+      typeof credenciales === 'object' ? credenciales : { email: credenciales, password };
+    return request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  registro: ({ nombre, email, password, telefono }) =>
+    request('/auth/registro', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre,
+        email,
+        password,
+        telefono: telefono && telefono.trim() !== '' ? telefono.trim() : null,
+      }),
+    }),
+
+  logout: () =>
+    request('/auth/logout', {
+      method: 'POST',
+    }),
+
+  olvidePassword: (email) => {
+    const payload = typeof email === 'object' ? email : { email };
+    return request('/auth/olvide-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  restablecerPassword: (tokenOrPayload, nuevaPassword) => {
+    const payload =
+      typeof tokenOrPayload === 'object'
+        ? tokenOrPayload
+        : { token: tokenOrPayload, nuevaPassword };
+    return request('/auth/restablecer-password', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  me: () => request('/auth/me'),
+};
+
+// Alias compatible con AuthContext.jsx y las demás páginas
 export const authApi = {
-    login: (credenciales) => request("/auth/login", { method: "POST", body: JSON.stringify(credenciales) }),
-    register: (datos) => request("/auth/register", { method: "POST", body: JSON.stringify(datos) }),
-    logout: () => request("/auth/logout", { method: "POST" }),
-    forgotPassword: (email) => request("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
-    resetPassword: (datos) => request("/auth/reset-password", { method: "POST", body: JSON.stringify(datos) }),
-};
-
-export const citasApi = {
-    listar: (params) => request(`/citas${construirQuery(params)}`),
-    crear: (payload) => request("/citas", { method: "POST", body: JSON.stringify(payload) }),
-    actualizar: (id, payload) => request(`/citas/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
-    cambiarEstado: (id, estado) => request(`/citas/${id}/estado`, { method: "PATCH", body: JSON.stringify({ estado }) }),
-    eliminar: (id) => request(`/citas/${id}`, { method: "DELETE" }),
-};
-
-export const tratamientosApi = {
-    listar: (params) => request(`/tratamientos${construirQuery(params)}`),
-    crear: (payload) => request("/tratamientos", { method: "POST", body: JSON.stringify(payload) }),
-    actualizar: (id, payload) => request(`/tratamientos/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
-    eliminar: (id) => request(`/tratamientos/${id}`, { method: "DELETE" }),
-};
-
-export const catalogoApi = {
-    dentistas: (params) => request(`/dentistas${construirQuery(params)}`),
-    especialidades: () => request("/especialidades"),
-};
-
-export const pacientesApi = {
-    listar: (params) => request(`/pacientes${construirQuery(params)}`),
-    actualizar: (id, payload) => request(`/pacientes/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
-    miPerfil: () => request("/pacientes/mi-perfil"),
-    actualizarMiPerfil: (payload) => request("/pacientes/mi-perfil", { method: "PUT", body: JSON.stringify(payload) }),
-};
-
-export const usuariosAdminApi = {
-    listar: (params) => request(`/usuarios${construirQuery(params)}`),
-    crear: (payload) => request("/usuarios", { method: "POST", body: JSON.stringify(payload) }),
-    actualizar: (id, payload) => request(`/usuarios/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
-    cambiarActivo: (id, activo) => request(`/usuarios/${id}/activo`, { method: "PATCH", body: JSON.stringify({ activo }) }),
+  ...authService,
+  register: authService.registro,
+  forgotPassword: authService.olvidePassword,
+  resetPassword: authService.restablecerPassword,
 };

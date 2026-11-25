@@ -1,58 +1,39 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../css/LoginPage.css";
 import imgConsultorio from "../assets/images/img_consultorio.png";
+import { useAuth } from "../context/AuthContext";
+import { validarEmail } from "../utils/validators";
 import LoginLogo from "../components/login/LoginLogo";
 import WelcomeMessage from "../components/login/WelcomeMessage";
 import InputField from "../components/login/InputField";
-import RememberForgot from "../components/login/RememberForgot";
 import Button from "../components/login/Button";
-import Divider from "../components/login/Divider";
-import SocialButton from "../components/login/SocialButton";
-import RegisterLink from "../components/login/RegisterLink";
 
-function LoginPage({ onLogin }) {
-    const [username, setUsername] = useState("");
+export default function LoginPage() {
+    const { iniciarSesion } = useAuth();
+    const navigate = useNavigate();
+
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [recordarme, setRecordarme] = useState(false);
-    const [error, setError] = useState("");
+    const [errors, setErrors] = useState({});
     const [cargando, setCargando] = useState(false);
 
     async function manejarSubmit(e) {
         e.preventDefault();
+        const errs = {};
+        const errMail = validarEmail(email);
+        if (errMail) errs.email = errMail;
+        if (!password.trim()) errs.password = "Ingresa tu contraseña";
 
-        if (!username.trim() || !password.trim()) {
-            setError("Completa todos los campos");
-            return;
-        }
+        setErrors(errs);
+        if (Object.keys(errs).length > 0) return;
 
-        setError("");
         setCargando(true);
-
         try {
-            const res = await fetch("https://dummyjson.com/auth/login", { // Aquí nos comunicamos con esa ruta
-                method: "POST",//Metodo POST para insertar 
-                headers: { "Content-Type": "application/json" }, //se envian en formato JSON
-                body: JSON.stringify({//objeto de JavaScript con JSON
-                    username: username.trim(),
-                    password,
-                    expiresInMins: 60,
-                }),
-            });
-            const data = await res.json();
-
-            if (!res.ok || !data.accessToken) {
-                setError(data.message || "Usuario o contraseña incorrectos");
-                return;
-            }
-
-            onLogin({
-                nombre: data.firstName,
-                username: data.username,
-                token: data.accessToken,
-                recordarme,
-            });
-        } catch {
-            setError("Error de conexión. Intenta de nuevo.");
+            await iniciarSesion(email.trim(), password);
+            navigate("/citas");
+        } catch (err) {
+            setErrors({ general: err.message });
         } finally {
             setCargando(false);
         }
@@ -65,7 +46,7 @@ function LoginPage({ onLogin }) {
             </div>
 
             <div className="login-derecha">
-                <form className="login-form" onSubmit={manejarSubmit}>
+                <form className="login-form" onSubmit={manejarSubmit} noValidate>
                     <div className="login-superior">
                         <LoginLogo />
                         <WelcomeMessage />
@@ -73,46 +54,47 @@ function LoginPage({ onLogin }) {
 
                     <div className="login-campos">
                         <InputField
-                            label="Nombre de usuario"
-                            type="text"
-                            icon="user"
-                            placeholder="jamesd"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            label="Correo electrónico"
+                            type="email"
+                            icon="mail"
+                            placeholder="ejemplo@correo.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
+                            error={errors.email}
                         />
                         <InputField
                             label="Contraseña"
                             type="password"
                             icon="lock"
-                            placeholder="jamesdpass"
+                            placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
+                            error={errors.password}
                         />
                     </div>
 
-                    <RememberForgot
-                        checked={recordarme}
-                        onChange={(e) => setRecordarme(e.target.checked)}
-                    />
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-10px" }}>
+                        <Link to="/olvide-password" className="link-btn" style={{ fontSize: "14px", textDecoration: "none" }}>
+                            ¿Olvidaste tu contraseña?
+                        </Link>
+                    </div>
 
-                    {error && <p className="login-error">{error}</p>}
+                    {errors.general && <p className="login-error">{errors.general}</p>}
 
                     <Button type="submit" disabled={cargando}>
                         {cargando ? "Entrando..." : "Iniciar sesión"}
                     </Button>
 
-                    <Divider />
-
-                    <div className="login-sociales">
-                        <SocialButton platform="google" />
-                        <SocialButton platform="facebook" />
-                    </div>
-
-                    <RegisterLink />
+                    <p className="register-link">
+                        <span>¿Aún no tienes cuenta?</span>
+                        <Link to="/registro" className="link-btn" style={{ textDecoration: "none" }}>
+                            Regístrate
+                        </Link>
+                    </p>
                 </form>
             </div>
         </div>
     );
 }
-
-export default LoginPage;
