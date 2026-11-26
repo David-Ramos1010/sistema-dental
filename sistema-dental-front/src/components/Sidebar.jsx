@@ -12,42 +12,58 @@ const MENU_ITEMS = [
     { to: "/usuarios", label: "Usuarios", roles: ["ADMIN"] },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
     const { usuario, cerrarSesion } = useAuth();
     const navigate = useNavigate();
 
     const enlacesVisibles = MENU_ITEMS.filter((item) => item.roles.includes(usuario?.rol));
 
     const handleLogout = async () => {
+        if (onClose) onClose();
         await cerrarSesion();
         navigate("/login");
     };
 
     return (
-        <aside className="sidebar-container">
-            <div className="sidebar-brand">
-                <span className="brand-title">Clinica Dental</span>
-                <img src={imgLogo} alt="Logo Clínica Dental" className="brand-logo-img" />
-            </div>
+        <>
+            {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
 
-            <nav className="sidebar-menu">
-                {enlacesVisibles.map((item) => (
-                    <NavLink
-                        key={item.to}
-                        to={item.to}
-                        className={({ isActive }) => `sidebar-btn ${isActive ? "active" : ""}`}
-                        style={{ textDecoration: "none" }}
+            <aside className={`sidebar-container ${isOpen ? "open" : ""}`}>
+                <div className="sidebar-brand">
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <img src={imgLogo} alt="Logo Clínica Dental" className="brand-logo-img" />
+                        <span className="brand-title">Clinica Dental</span>
+                    </div>
+                    <button
+                        type="button"
+                        className="sidebar-close-btn"
+                        onClick={onClose}
+                        aria-label="Cerrar menú"
                     >
-                        {item.label}
-                    </NavLink>
-                ))}
-            </nav>
+                        ✕
+                    </button>
+                </div>
 
-            <div className="sidebar-bottom">
-                <button type="button" className="sidebar-logout" onClick={handleLogout}>
-                    Cerrar Sesión
-                </button>
-            </div>
-        </aside>
+                <nav className="sidebar-menu">
+                    {enlacesVisibles.map((item) => (
+                        <NavLink
+                            key={item.to}
+                            to={item.to}
+                            onClick={onClose}
+                            className={({ isActive }) => `sidebar-btn ${isActive ? "active" : ""}`}
+                            style={{ textDecoration: "none" }}
+                        >
+                            {item.label}
+                        </NavLink>
+                    ))}
+                </nav>
+
+                <div className="sidebar-bottom">
+                    <button type="button" className="sidebar-logout" onClick={handleLogout}>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }

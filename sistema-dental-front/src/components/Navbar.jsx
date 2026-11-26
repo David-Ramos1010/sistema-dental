@@ -31,14 +31,24 @@ const obtenerIniciales = (nombre) => {
     return (palabras[0].charAt(0) + palabras[1].charAt(0)).toUpperCase();
 };
 
-export default function Navbar() {
+export default function Navbar({ onToggleMenu }) {
     const { usuario } = useAuth();
     const location = useLocation();
     const titulo = obtenerTitulo(location.pathname);
 
     return (
         <header className="navbar-container">
-            <h1 className="navbar-title">{titulo}</h1>
+            <div className="navbar-left">
+                <button
+                    type="button"
+                    className="navbar-menu-btn"
+                    onClick={onToggleMenu}
+                    aria-label="Abrir menú"
+                >
+                    ☰
+                </button>
+                <h1 className="navbar-title">{titulo}</h1>
+            </div>
 
             <div className="navbar-user">
                 <div className="user-text">

@@ -10,6 +10,8 @@
     top: 0;
     padding: 24px 16px;
     box-sizing: border-box;
+    z-index: 1000;
+    transition: transform 0.25s ease;
 }
 
 .sidebar-brand {
@@ -30,6 +32,20 @@
     width: 32px;
     height: 32px;
     object-fit: contain;
+}
+
+.sidebar-close-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.sidebar-backdrop {
+    display: none;
 }
 
 .sidebar-menu {
@@ -82,4 +98,30 @@
 
 .sidebar-logout:hover {
     opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .sidebar-container {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+    }
+
+    .sidebar-container.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-close-btn {
+        display: block;
+    }
+
+    .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(16, 24, 40, 0.5);
+        z-index: 999;
+    }
 }

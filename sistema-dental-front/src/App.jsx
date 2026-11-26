@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import "./App.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -24,11 +25,13 @@ function PublicRoute({ children }) {
 }
 
 function AppLayout() {
+    const [menuAbierto, setMenuAbierto] = useState(false);
+
     return (
         <div className="app-layout">
-            <Sidebar />
+            <Sidebar isOpen={menuAbierto} onClose={() => setMenuAbierto(false)} />
             <div className="main-area">
-                <Navbar />
+                <Navbar onToggleMenu={() => setMenuAbierto((prev) => !prev)} />
                 <main className="contenido">
                     <Outlet />
                 </main>
