@@ -1,0 +1,30 @@
+info:
+  name: ERROR - Token JWT invalido
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/auth/me"
+  auth:
+    type: bearer
+    token: "esto.no.es-un-jwt"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("un JWT manipulado/invalido se rechaza (401 o 403)", function () {
+          expect([401, 403]).to.include(res.status);
+        });
+
+docs:
+  content: |-
+    Acceso denegado: el token enviado no es un JWT valido.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,35 @@
+info:
+  name: Perfil del usuario autenticado
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/auth/me"
+  auth:
+    type: bearer
+    token: "{{pacienteToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("devuelve los datos del paciente autenticado", function () {
+          expect(res.body).to.be.an("object");
+          expect(JSON.stringify(res.body)).to.include(bru.getVar("pacienteEmail"));
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+docs:
+  content: |-
+    Ruta protegida: requiere `Authorization: Bearer <pacienteToken>`.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

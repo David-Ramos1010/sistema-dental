@@ -1,0 +1,14 @@
+name: local
+variables:
+  - name: baseUrl
+    value: http://localhost:8089
+    enabled: true
+  - name: adminEmail
+    value: admin@sistemadental.com
+    enabled: true
+  - name: adminPassword
+    value: Admin#2026
+    enabled: true
+  - name: pacientePassword
+    value: Paciente#2026x
+    enabled: true

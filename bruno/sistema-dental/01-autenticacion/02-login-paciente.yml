@@ -1,0 +1,58 @@
+info:
+  name: Login paciente (obtiene JWT)
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{pacienteEmail}}",
+        "password": "{{pacientePassword}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Guarda el JWT para reutilizarlo en las rutas protegidas
+        const body = res.body || {};
+        const token = body.token || body.accessToken || body.jwt;
+        if (token) {
+          bru.setVar("pacienteToken", token);
+        }
+    - type: tests
+      code: |-
+        test("el login devuelve un token", function () {
+          const body = res.body;
+          const token = body.token || body.accessToken || body.jwt;
+          expect(token, "token en la respuesta").to.be.a("string").and.not.empty;
+        });
+
+        test("el token tiene formato JWT (header.payload.signature)", function () {
+          const token = bru.getVar("pacienteToken");
+          expect(token.split(".")).to.have.lengthOf(3);
+        });
+
+        test("el token quedo guardado en la variable pacienteToken", function () {
+          expect(bru.getVar("pacienteToken")).to.be.a("string").and.not.empty;
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+docs:
+  content: |-
+    Inicia sesion con el paciente registrado y guarda el JWT en `pacienteToken`.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

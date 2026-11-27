@@ -1,0 +1,35 @@
+info:
+  name: ERROR - Restablecer con token invalido
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/restablecer-password"
+  body:
+    type: json
+    data: |-
+      {
+        "token": "token-de-recuperacion-invalido",
+        "nuevaPassword": "Nueva#2027x"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("un token de recuperacion invalido se rechaza (4xx)", function () {
+          expect(res.status).to.be.within(400, 499);
+        });
+
+docs:
+  content: |-
+    Error esperado: el token de recuperacion no existe o expiro.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

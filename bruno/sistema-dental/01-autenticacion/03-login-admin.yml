@@ -1,0 +1,48 @@
+info:
+  name: Login admin (obtiene JWT)
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "{{adminEmail}}",
+        "password": "{{adminPassword}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.body || {};
+        const token = body.token || body.accessToken || body.jwt;
+        if (token) {
+          bru.setVar("adminToken", token);
+        }
+    - type: tests
+      code: |-
+        test("el login admin devuelve un JWT valido", function () {
+          const token = bru.getVar("adminToken");
+          expect(token, "adminToken").to.be.a("string").and.not.empty;
+          expect(token.split(".")).to.have.lengthOf(3);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+docs:
+  content: |-
+    Inicia sesion con el administrador sembrado en la base de datos y guarda el JWT en `adminToken`.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

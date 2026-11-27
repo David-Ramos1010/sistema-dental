@@ -1,0 +1,34 @@
+info:
+  name: Ruta exclusiva de admin
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/prueba/admin"
+  auth:
+    type: bearer
+    token: "{{adminToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("el admin puede entrar a la ruta de admin", function () {
+          expect(res.status).to.equal(200);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+docs:
+  content: |-
+    Ruta protegida por rol: solo ADMIN. Aqui se usa `adminToken`.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

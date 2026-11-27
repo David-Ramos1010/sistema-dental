@@ -1,0 +1,34 @@
+info:
+  name: ERROR - Paciente intenta ruta de admin
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/prueba/admin"
+  auth:
+    type: bearer
+    token: "{{pacienteToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("el rol PACIENTE no tiene permiso: 403 Forbidden", function () {
+          expect(res.status).to.equal(403);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "403"
+
+docs:
+  content: |-
+    Acceso denegado por rol: el token es valido pero PACIENTE no puede acceder a rutas ADMIN.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

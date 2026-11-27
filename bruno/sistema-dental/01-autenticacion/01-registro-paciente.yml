@@ -1,0 +1,45 @@
+info:
+  name: Registro de paciente
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/registro"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Paciente de Prueba",
+        "email": "{{pacienteEmail}}",
+        "password": "{{pacientePassword}}",
+        "telefono": "+529511234567"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // Correo unico en cada corrida para que la coleccion sea repetible
+        bru.setVar("pacienteEmail", "paciente." + Date.now() + "@correo.test");
+    - type: tests
+      code: |-
+        test("el registro responde 200 o 201", function () {
+          expect([200, 201]).to.include(res.status);
+        });
+
+        test("la respuesta es un objeto JSON", function () {
+          expect(res.body).to.be.an("object");
+        });
+
+docs:
+  content: |-
+    Crea un paciente nuevo con correo dinamico (`pacienteEmail`). Ese usuario se usa en el resto de la coleccion.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

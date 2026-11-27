@@ -1,0 +1,47 @@
+info:
+  name: Crear dentista (admin)
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/admin/usuarios"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Dr. Prueba Automatica",
+        "email": "{{dentistaEmail}}",
+        "password": "Dentista#2026x",
+        "telefono": "+5219511999999",
+        "rol": "DENTISTA",
+        "especialidadId": 1,
+        "cedula": "{{dentistaCedula}}"
+      }
+  auth:
+    type: bearer
+    token: "{{adminToken}}"
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const n = Date.now();
+        bru.setVar("dentistaEmail", "dentista." + n + "@sistemadental.test");
+        bru.setVar("dentistaCedula", "CED-" + n);
+    - type: tests
+      code: |-
+        test("el admin crea el usuario con 200 o 201", function () {
+          expect([200, 201]).to.include(res.status);
+        });
+
+docs:
+  content: |-
+    Solo ADMIN puede crear usuarios con rol DENTISTA. Usa correo y cedula dinamicos.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

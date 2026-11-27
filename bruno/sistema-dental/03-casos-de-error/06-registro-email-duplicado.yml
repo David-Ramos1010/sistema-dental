@@ -1,0 +1,37 @@
+info:
+  name: ERROR - Registro con email ya existente
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/registro"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Paciente Duplicado",
+        "email": "{{pacienteEmail}}",
+        "password": "{{pacientePassword}}",
+        "telefono": "+529511234567"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("el correo repetido se rechaza (400 o 409)", function () {
+          expect([400, 409]).to.include(res.status);
+        });
+
+docs:
+  content: |-
+    Error esperado: el correo del paciente ya fue registrado en el primer request de la coleccion.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

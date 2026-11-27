@@ -1,0 +1,56 @@
+info:
+  name: Crear cita (paciente)
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/citas"
+  body:
+    type: json
+    data: |-
+      {
+        "dentistaId": 1,
+        "fechaHora": "{{citaFechaHora}}",
+        "motivo": "Revision general",
+        "notas": "Cita creada desde la coleccion de pruebas",
+        "tratamientoIds": [1]
+      }
+  auth:
+    type: bearer
+    token: "{{pacienteToken}}"
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // Fecha futura aleatoria (20-365 dias, 09:00-17:00) para evitar choques de horario
+        const dias = 20 + Math.floor(Math.random() * 345);
+        const hora = String(9 + Math.floor(Math.random() * 8)).padStart(2, "0");
+        const fecha = new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
+        bru.setVar("citaFechaHora", fecha + "T" + hora + ":00:00");
+    - type: after-response
+      code: |-
+        if (res.body && res.body.id) {
+          bru.setVar("citaId", res.body.id);
+        }
+    - type: tests
+      code: |-
+        test("la cita se crea con 200 o 201", function () {
+          expect([200, 201]).to.include(res.status);
+        });
+
+        test("la respuesta incluye el id de la cita", function () {
+          expect(res.body).to.have.property("id");
+        });
+
+docs:
+  content: |-
+    Crea una cita con el token del paciente. Guarda el id en `citaId`.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

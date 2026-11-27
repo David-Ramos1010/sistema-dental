@@ -1,0 +1,30 @@
+info:
+  name: Cerrar sesion (paciente)
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/logout"
+  auth:
+    type: bearer
+    token: "{{pacienteToken}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("el logout responde 200 o 204", function () {
+          expect([200, 204]).to.include(res.status);
+        });
+
+docs:
+  content: |-
+    Invalida el JWT del paciente.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
