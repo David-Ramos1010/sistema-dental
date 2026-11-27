@@ -197,24 +197,31 @@ export default function CitasPage() {
                         <option value="COMPLETADA">Completadas</option>
                         <option value="CANCELADA">Canceladas</option>
                     </select>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#475467", fontWeight: 500 }}>
+                    Desde:
                     <input
-                        type="date"
-                        className="filter-date"
-                        value={fechaDesde}
-                        onChange={(e) => {
-                            setFechaDesde(e.target.value);
-                            setPage(0);
-                        }}
-                    />
+                    type="date"
+                    className="filter-select"
+                    value={fechaDesde}
+                    onChange={(e) => {
+                        setFechaDesde(e.target.value);
+                        setPage(0);
+                    }}
+                />
+                </label>
+                
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#475467", fontWeight: 500 }}>
+                    Hasta:
                     <input
-                        type="date"
-                        className="filter-date"
-                        value={fechaHasta}
-                        onChange={(e) => {
-                            setFechaHasta(e.target.value);
-                            setPage(0);
-                        }}
-                    />
+                    type="date"
+                    className="filter-select"
+                    value={fechaHasta}
+                    onChange={(e) => {
+                        setFechaHasta(e.target.value);
+                        setPage(0);
+                    }}
+                />
+                </label>
                     {(busqueda || filtroEstado || fechaDesde || fechaHasta) && (
                         <button
                             type="button"
