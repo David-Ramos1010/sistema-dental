@@ -9,7 +9,7 @@ Aplicación web full stack para la gestión de una clínica dental: agenda de ci
 | Recurso | URL |
 |---|---|
 | Aplicación (HTTPS) | http://194.163.143.215/login |
-| URL base de la API | https://TU_DOMINIO/api |
+| URL base de la API | http://194.163.143.215/login/api |
 | Prototipo de Figma | [https://www.figma.com/site/kkY4z4bqYhp9ZgdHh3M0Np/Prototipo_web?node-id=0-1&p=f&t=eFVMwEeW8NWpBnpu-0] |
 | Tablero de GitHub Projects | [https://github.com/David-Ramos1010/sistema-dental] |
 
