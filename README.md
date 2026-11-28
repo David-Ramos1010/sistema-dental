@@ -2,13 +2,13 @@
 
 Aplicación web full stack para la gestión de una clínica dental: agenda de citas, pacientes, dentistas y tratamientos, con tres niveles de usuario y notificaciones por correo, SMS y WhatsApp.
 
-*Equipo [N]:* David Efraín José Ramos y [Nombre completo del compañero]
+*Equipo 4:* David Efraín José Ramos y Jordi Moisés Alvaréz Mora
 
 ## Enlaces
 
 | Recurso | URL |
 |---|---|
-| Aplicación (HTTPS) | https://TU_DOMINIO |
+| Aplicación (HTTPS) | http://194.163.143.215/login |
 | URL base de la API | https://TU_DOMINIO/api |
 | Prototipo de Figma | [https://www.figma.com/site/kkY4z4bqYhp9ZgdHh3M0Np/Prototipo_web?node-id=0-1&p=f&t=eFVMwEeW8NWpBnpu-0] |
 | Tablero de GitHub Projects | [https://github.com/David-Ramos1010/sistema-dental] |
